@@ -53,7 +53,10 @@ export async function POST(req: Request) {
 
     return Response.json({ translations: map })
   } catch (error) {
-    console.log("[v0] translation error:", (error as Error).message)
-    return Response.json({ translations: {}, error: "translation_failed" }, { status: 200 })
+    console.log("[v0] translation error:", (error as Error)?.message, (error as Error)?.stack)
+    return Response.json(
+      { translations: {}, error: "translation_failed", detail: (error as Error)?.message },
+      { status: 200 },
+    )
   }
 }

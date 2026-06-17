@@ -16,17 +16,15 @@ export function LanguageSwitcher() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          className="flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1.5 text-sm font-medium backdrop-blur transition-colors hover:border-primary/60 hover:text-primary"
-          aria-label="Cambiar idioma"
-        >
-          <Globe className="size-4 text-primary" />
-          <span className="tabular-nums">{current?.flag}</span>
-          {translating && (
-            <span className="size-1.5 animate-pulse rounded-full bg-primary" aria-hidden />
-          )}
-        </button>
+      <DropdownMenuTrigger
+        className="flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1.5 text-sm font-medium backdrop-blur transition-colors hover:border-primary/60 hover:text-primary"
+        aria-label="Cambiar idioma"
+      >
+        <Globe className="size-4 text-primary" />
+        <span className="tabular-nums">{current?.flag}</span>
+        {translating && (
+          <span className="size-1.5 animate-pulse rounded-full bg-primary" aria-hidden />
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="max-h-80 overflow-y-auto">
         {LANGUAGES.map((l) => (

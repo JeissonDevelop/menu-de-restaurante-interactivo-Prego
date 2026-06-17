@@ -3,10 +3,18 @@ import { Pool } from "pg"
 // Single shared pg Pool for the whole app.
 const globalForDb = globalThis as unknown as { _pgPool?: Pool }
 
+function buildConnectionString() {
+  const url = process.env.DATABASE_URL ?? ""
+  if (!url) return url
+  if (url.includes("sslmode=")) return url
+  return url + (url.includes("?") ? "&" : "?") + "sslmode=require"
+}
+
 export const pool =
   globalForDb._pgPool ??
   new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: buildConnectionString(),
+    ssl: { rejectUnauthorized: false },
   })
 
 if (process.env.NODE_ENV !== "production") {

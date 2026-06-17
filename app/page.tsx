@@ -16,7 +16,7 @@ export default async function HomePage() {
         <MenuBrowser dishes={available} />
         <footer className="border-t border-border py-10 text-center">
           <p className="font-serif text-2xl text-primary">PREGO</p>
-          <p className="mt-2 text-sm text-muted-foreground">Cocina italiana de autor</p>
+          <p className="mt-2 text-sm text-muted-foreground">Cocina mediterranea de autor</p>
         </footer>
       </main>
     </LanguageProvider>

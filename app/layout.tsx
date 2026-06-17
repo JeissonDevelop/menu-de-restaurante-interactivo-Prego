@@ -15,9 +15,9 @@ const playfair = Playfair_Display({
 })
 
 export const metadata: Metadata = {
-  title: 'PREGO · Cocina italiana de autor',
+  title: 'PREGO · Cocina mediterranea de autor',
   description:
-    'Carta digital del restaurante PREGO. Cocina italiana de autor. Disponible en múltiples idiomas.',
+    'Carta digital del restaurante PREGO. Cocina mediterranea de autor. Disponible en múltiples idiomas.',
   generator: 'v0.app',
 }
 

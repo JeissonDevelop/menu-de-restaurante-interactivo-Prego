@@ -33,7 +33,7 @@ export const DEFAULT_LANGUAGE: LanguageCode = "es"
 // translated at runtime by AI; these are the fixed interface labels.
 export const UI_STRINGS: Record<string, Record<string, string>> = {
   es: {
-    tagline: "Cocina italiana de autor",
+    tagline: "Cocina mediterranea de autor",
     featured: "Destacados",
     all: "Todo",
     menu: "Carta",

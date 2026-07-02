@@ -1,62 +1,99 @@
-import { generateObject } from "ai"
-import { z } from "zod"
+export const maxDuration = 60
 
-export const maxDuration = 30
+type DishInput = { id: number; name: string; ingredients: string; description: string }
+type Translation = { name: string; ingredients: string; description: string }
 
-// Simple in-memory cache so repeated requests for the same language are instant.
-const cache = new Map<string, Record<string, { name: string; ingredients: string; description: string }>>()
+// In-memory cache so repeated requests for the same language/dishes are instant.
+const cache = new Map<string, Record<string, Translation>>()
+// Separate cache for the fixed UI/interface labels, keyed by language.
+const uiCache = new Map<string, string[]>()
 
-const schema = z.object({
-  translations: z.array(
-    z.object({
-      id: z.number(),
-      name: z.string(),
-      ingredients: z.string(),
-      description: z.string(),
-    }),
-  ),
-})
+// Free, key-less translation via Google's public endpoint.
+// Returns the original text unchanged if the request fails.
+async function translateText(text: string, target: string): Promise<string> {
+  const clean = (text ?? "").trim()
+  if (!clean) return text ?? ""
+  try {
+    const url =
+      "https://translate.googleapis.com/translate_a/single?client=gtx&sl=es" +
+      `&tl=${encodeURIComponent(target)}&dt=t&q=${encodeURIComponent(clean)}`
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      // Never cache at the fetch layer; we cache in-memory ourselves.
+      cache: "no-store",
+    })
+    if (!res.ok) throw new Error(`status ${res.status}`)
+    const data = (await res.json()) as [Array<[string]>]
+    // data[0] is an array of translated segments -> join them back together.
+    const segments = data?.[0]
+    if (!Array.isArray(segments)) throw new Error("unexpected shape")
+    return segments.map((s) => s?.[0] ?? "").join("")
+  } catch (error) {
+    console.log("[v0] translate segment failed:", (error as Error)?.message)
+    return text ?? ""
+  }
+}
+
+async function translateDish(dish: DishInput, target: string): Promise<Translation> {
+  const [name, ingredients, description] = await Promise.all([
+    translateText(dish.name, target),
+    translateText(dish.ingredients, target),
+    translateText(dish.description, target),
+  ])
+  return { name, ingredients, description }
+}
 
 export async function POST(req: Request) {
   try {
-    const { language, languageLabel, dishes } = (await req.json()) as {
+    const { language, dishes, texts } = (await req.json()) as {
       language: string
-      languageLabel: string
-      dishes: { id: number; name: string; ingredients: string; description: string }[]
+      languageLabel?: string
+      dishes?: DishInput[]
+      texts?: string[]
     }
 
     if (!language || language === "es") {
-      return Response.json({ translations: {} })
+      return Response.json({ translations: {}, texts: texts ?? [] })
     }
 
-    const cacheKey = `${language}:${dishes.map((d) => d.id).join(",")}`
-    if (cache.has(cacheKey)) {
-      return Response.json({ translations: cache.get(cacheKey) })
+    // Map our internal language codes to Google Translate codes where they differ.
+    const targetMap: Record<string, string> = {
+      zh: "zh-CN",
+      no: "no",
+      he: "iw",
+    }
+    const target = targetMap[language] ?? language
+
+    // Translate the fixed interface labels (cached per language).
+    let translatedTexts: string[] = texts ?? []
+    if (texts && texts.length > 0) {
+      if (uiCache.has(language)) {
+        translatedTexts = uiCache.get(language)!
+      } else {
+        translatedTexts = await Promise.all(texts.map((s) => translateText(s, target)))
+        uiCache.set(language, translatedTexts)
+      }
     }
 
-    const { object } = await generateObject({
-      model: "openai/gpt-5-mini",
-      schema,
-      prompt:
-        `You are a professional menu translator for an upscale Italian restaurant. ` +
-        `Translate the following dish names, ingredient lists and descriptions from Spanish into ${languageLabel} (${language}). ` +
-        `Keep Italian culinary proper nouns (e.g. "Carbonara", "Osso Buco", "Tiramisú", "Burrata") in their original form. ` +
-        `Translate naturally and appetizingly, not literally. Return one entry per dish, preserving the id.\n\n` +
-        `Dishes:\n${JSON.stringify(dishes)}`,
-    })
-
-    const map: Record<string, { name: string; ingredients: string; description: string }> = {}
-    for (const t of object.translations) {
-      map[t.id] = { name: t.name, ingredients: t.ingredients, description: t.description }
+    // Translate dish content (cached per language + dish set).
+    const dishList = dishes ?? []
+    const cacheKey = `${language}:${dishList.map((d) => d.id).join(",")}`
+    let map: Record<string, Translation> = {}
+    if (dishList.length > 0) {
+      if (cache.has(cacheKey)) {
+        map = cache.get(cacheKey)!
+      } else {
+        const results = await Promise.all(dishList.map((d) => translateDish(d, target)))
+        dishList.forEach((d, i) => {
+          map[d.id] = results[i]
+        })
+        cache.set(cacheKey, map)
+      }
     }
-    cache.set(cacheKey, map)
 
-    return Response.json({ translations: map })
+    return Response.json({ translations: map, texts: translatedTexts })
   } catch (error) {
-    console.log("[v0] translation error:", (error as Error)?.message, (error as Error)?.stack)
-    return Response.json(
-      { translations: {}, error: "translation_failed", detail: (error as Error)?.message },
-      { status: 200 },
-    )
+    console.log("[v0] translation error:", (error as Error)?.message)
+    return Response.json({ translations: {}, error: "translation_failed" }, { status: 200 })
   }
 }

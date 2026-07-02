@@ -10,19 +10,39 @@ export const CATEGORIES = [
 
 export type CategoryId = (typeof CATEGORIES)[number]["id"]
 
+// 28 idiomas ordenados por relevancia para un restaurante en la costa
+// turística española (principales nacionalidades de turistas + lenguas
+// cooficiales de España). El contenido de los platos y las etiquetas de la
+// interfaz se traducen automáticamente en tiempo de ejecución.
 export const LANGUAGES = [
   { code: "es", label: "Español", flag: "ES" },
   { code: "en", label: "English", flag: "EN" },
-  { code: "it", label: "Italiano", flag: "IT" },
   { code: "fr", label: "Français", flag: "FR" },
   { code: "de", label: "Deutsch", flag: "DE" },
+  { code: "it", label: "Italiano", flag: "IT" },
   { code: "pt", label: "Português", flag: "PT" },
+  { code: "nl", label: "Nederlands", flag: "NL" },
+  { code: "pl", label: "Polski", flag: "PL" },
+  { code: "ru", label: "Русский", flag: "RU" },
   { code: "ca", label: "Català", flag: "CA" },
+  { code: "gl", label: "Galego", flag: "GL" },
+  { code: "eu", label: "Euskara", flag: "EU" },
+  { code: "sv", label: "Svenska", flag: "SV" },
+  { code: "no", label: "Norsk", flag: "NO" },
+  { code: "da", label: "Dansk", flag: "DA" },
+  { code: "fi", label: "Suomi", flag: "FI" },
+  { code: "el", label: "Ελληνικά", flag: "EL" },
+  { code: "tr", label: "Türkçe", flag: "TR" },
+  { code: "ro", label: "Română", flag: "RO" },
+  { code: "cs", label: "Čeština", flag: "CS" },
+  { code: "hu", label: "Magyar", flag: "HU" },
+  { code: "uk", label: "Українська", flag: "UK" },
+  { code: "ar", label: "العربية", flag: "AR" },
+  { code: "he", label: "עברית", flag: "HE" },
+  { code: "hi", label: "हिन्दी", flag: "HI" },
   { code: "zh", label: "中文", flag: "ZH" },
   { code: "ja", label: "日本語", flag: "JA" },
-  { code: "ar", label: "العربية", flag: "AR" },
-  { code: "ru", label: "Русский", flag: "RU" },
-  { code: "nl", label: "Nederlands", flag: "NL" },
+  { code: "ko", label: "한국어", flag: "KO" },
 ] as const
 
 export type LanguageCode = (typeof LANGUAGES)[number]["code"]

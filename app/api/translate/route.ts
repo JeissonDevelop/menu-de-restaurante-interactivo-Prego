@@ -5,6 +5,8 @@ type Translation = { name: string; ingredients: string; description: string }
 
 // In-memory cache so repeated requests for the same language/dishes are instant.
 const cache = new Map<string, Record<string, Translation>>()
+// Separate cache for the fixed UI/interface labels, keyed by language.
+const uiCache = new Map<string, string[]>()
 
 // Free, key-less translation via Google's public endpoint.
 // Returns the original text unchanged if the request fails.
@@ -43,37 +45,53 @@ async function translateDish(dish: DishInput, target: string): Promise<Translati
 
 export async function POST(req: Request) {
   try {
-    const { language, dishes } = (await req.json()) as {
+    const { language, dishes, texts } = (await req.json()) as {
       language: string
       languageLabel?: string
-      dishes: DishInput[]
+      dishes?: DishInput[]
+      texts?: string[]
     }
 
     if (!language || language === "es") {
-      return Response.json({ translations: {} })
+      return Response.json({ translations: {}, texts: texts ?? [] })
     }
 
     // Map our internal language codes to Google Translate codes where they differ.
     const targetMap: Record<string, string> = {
       zh: "zh-CN",
-      pt: "pt",
+      no: "no",
+      he: "iw",
     }
     const target = targetMap[language] ?? language
 
-    const cacheKey = `${language}:${dishes.map((d) => d.id).join(",")}`
-    if (cache.has(cacheKey)) {
-      return Response.json({ translations: cache.get(cacheKey) })
+    // Translate the fixed interface labels (cached per language).
+    let translatedTexts: string[] = texts ?? []
+    if (texts && texts.length > 0) {
+      if (uiCache.has(language)) {
+        translatedTexts = uiCache.get(language)!
+      } else {
+        translatedTexts = await Promise.all(texts.map((s) => translateText(s, target)))
+        uiCache.set(language, translatedTexts)
+      }
     }
 
-    const results = await Promise.all(dishes.map((d) => translateDish(d, target)))
+    // Translate dish content (cached per language + dish set).
+    const dishList = dishes ?? []
+    const cacheKey = `${language}:${dishList.map((d) => d.id).join(",")}`
+    let map: Record<string, Translation> = {}
+    if (dishList.length > 0) {
+      if (cache.has(cacheKey)) {
+        map = cache.get(cacheKey)!
+      } else {
+        const results = await Promise.all(dishList.map((d) => translateDish(d, target)))
+        dishList.forEach((d, i) => {
+          map[d.id] = results[i]
+        })
+        cache.set(cacheKey, map)
+      }
+    }
 
-    const map: Record<string, Translation> = {}
-    dishes.forEach((d, i) => {
-      map[d.id] = results[i]
-    })
-    cache.set(cacheKey, map)
-
-    return Response.json({ translations: map })
+    return Response.json({ translations: map, texts: translatedTexts })
   } catch (error) {
     console.log("[v0] translation error:", (error as Error)?.message)
     return Response.json({ translations: {}, error: "translation_failed" }, { status: 200 })

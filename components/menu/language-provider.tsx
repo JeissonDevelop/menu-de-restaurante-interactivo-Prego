@@ -2,14 +2,12 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import {
-  CATEGORIES,
-  CATEGORY_LABELS_BY_LANG,
   DEFAULT_LANGUAGE,
   LANGUAGES,
   UI_STRINGS,
   type LanguageCode,
 } from "@/lib/constants"
-import type { Dish } from "@/lib/db"
+import type { Dish, Category } from "@/lib/db"
 
 type Translation = { name: string; ingredients: string; description: string }
 type TranslationMap = Record<number, Translation>
@@ -19,7 +17,7 @@ type LanguageContextValue = {
   lang: LanguageCode
   setLang: (l: LanguageCode) => void
   t: (key: string) => string
-  categoryLabel: (id: string, fallback: string) => string
+  categoryLabel: (slug: string, fallback: string) => string
   translateDish: (dish: Dish) => Translation
   translating: boolean
 }
@@ -31,13 +29,14 @@ const RTL_LANGS = new Set<string>(["ar", "he"])
 
 // Fixed interface labels are translated from their Spanish base values.
 const UI_KEYS = Object.keys(UI_STRINGS.es)
-const CATEGORY_IDS = CATEGORIES.map((c) => c.id)
 
 export function LanguageProvider({
   dishes,
+  categories,
   children,
 }: {
   dishes: Dish[]
+  categories: Category[]
   children: React.ReactNode
 }) {
   const [lang, setLangState] = useState<LanguageCode>(DEFAULT_LANGUAGE)
@@ -45,6 +44,13 @@ export function LanguageProvider({
   const [uiTranslations, setUiTranslations] = useState<Record<string, StringMap>>({})
   const [catTranslations, setCatTranslations] = useState<Record<string, StringMap>>({})
   const [translating, setTranslating] = useState(false)
+
+  // Stable list of category slugs + their Spanish labels for translation.
+  const categorySlugs = useMemo(() => categories.map((c) => c.slug), [categories])
+  const categoryBaseLabels = useMemo(
+    () => Object.fromEntries(categories.map((c) => [c.slug, c.label])),
+    [categories],
+  )
 
   // Restore saved language preference.
   useEffect(() => {
@@ -81,7 +87,7 @@ export function LanguageProvider({
 
     const texts = [
       ...UI_KEYS.map((k) => UI_STRINGS.es[k]),
-      ...CATEGORY_IDS.map((id) => CATEGORY_LABELS_BY_LANG.es[id]),
+      ...categorySlugs.map((slug) => categoryBaseLabels[slug]),
     ]
 
     fetch("/api/translate", {
@@ -111,9 +117,9 @@ export function LanguageProvider({
             if (translatedTexts[i]) uiMap[k] = translatedTexts[i]
           })
           const catMap: StringMap = {}
-          CATEGORY_IDS.forEach((id, i) => {
+          categorySlugs.forEach((slug, i) => {
             const val = translatedTexts[UI_KEYS.length + i]
-            if (val) catMap[id] = val
+            if (val) catMap[slug] = val
           })
           setUiTranslations((prev) => ({ ...prev, [lang]: uiMap }))
           setCatTranslations((prev) => ({ ...prev, [lang]: catMap }))
@@ -127,7 +133,7 @@ export function LanguageProvider({
     return () => {
       cancelled = true
     }
-  }, [lang, dishes, translations, uiTranslations])
+  }, [lang, dishes, translations, uiTranslations, categorySlugs, categoryBaseLabels])
 
   const t = useCallback(
     (key: string) => {
@@ -144,14 +150,9 @@ export function LanguageProvider({
   )
 
   const categoryLabel = useCallback(
-    (id: string, fallback: string) => {
-      if (lang === "es") return CATEGORY_LABELS_BY_LANG.es[id] ?? fallback
-      return (
-        catTranslations[lang]?.[id] ??
-        CATEGORY_LABELS_BY_LANG[lang]?.[id] ??
-        CATEGORY_LABELS_BY_LANG.en[id] ??
-        fallback
-      )
+    (slug: string, fallback: string) => {
+      if (lang === "es") return fallback
+      return catTranslations[lang]?.[slug] ?? fallback
     },
     [lang, catTranslations],
   )

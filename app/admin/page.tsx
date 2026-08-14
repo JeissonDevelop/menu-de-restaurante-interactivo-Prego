@@ -1,5 +1,6 @@
 import { isAdminAuthed } from "@/lib/admin-auth"
 import { getDishes } from "@/app/actions/dishes"
+import { getCategories } from "@/app/actions/categories"
 import { AdminLogin } from "@/components/admin/admin-login"
 import { AdminDashboard } from "@/components/admin/admin-dashboard"
 
@@ -12,6 +13,6 @@ export default async function AdminPage() {
     return <AdminLogin />
   }
 
-  const dishes = await getDishes()
-  return <AdminDashboard dishes={dishes} />
+  const [dishes, categories] = await Promise.all([getDishes(), getCategories()])
+  return <AdminDashboard dishes={dishes} categories={categories} />
 }

@@ -51,6 +51,30 @@ export type Dish = {
   sortOrder: number
 }
 
+export type CategoryRow = {
+  id: number
+  slug: string
+  label: string
+  sort_order: number
+  created_at: string
+}
+
+export type Category = {
+  id: number
+  slug: string
+  label: string
+  sortOrder: number
+}
+
+export function mapCategory(row: CategoryRow): Category {
+  return {
+    id: row.id,
+    slug: row.slug,
+    label: row.label,
+    sortOrder: row.sort_order,
+  }
+}
+
 export function mapDish(row: DishRow): Dish {
   return {
     id: row.id,

@@ -7,14 +7,20 @@ import { Plus, Pencil, Trash2, Star, LogOut, Eye, ExternalLink, X } from "lucide
 import { deleteDish, toggleFeatured } from "@/app/actions/dishes"
 import { logoutAdmin } from "@/app/actions/auth"
 import { DishForm } from "@/components/admin/dish-form"
-import { CATEGORIES } from "@/lib/constants"
-import type { Dish } from "@/lib/db"
+import { CategoryManager } from "@/components/admin/category-manager"
+import type { Dish, Category } from "@/lib/db"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
-export function AdminDashboard({ dishes }: { dishes: Dish[] }) {
+export function AdminDashboard({
+  dishes,
+  categories,
+}: {
+  dishes: Dish[]
+  categories: Category[]
+}) {
   const router = useRouter()
   const [editing, setEditing] = useState<Dish | null>(null)
   const [creating, setCreating] = useState(false)
@@ -59,7 +65,8 @@ export function AdminDashboard({ dishes }: { dishes: Dish[] }) {
     })
   }
 
-  const categoryLabel = (id: string) => CATEGORIES.find((c) => c.id === id)?.label ?? id
+  const categoryLabel = (slug: string) =>
+    categories.find((c) => c.slug === slug)?.label ?? slug
 
   return (
     <main className="min-h-dvh">
@@ -88,6 +95,11 @@ export function AdminDashboard({ dishes }: { dishes: Dish[] }) {
       </header>
 
       <div className="mx-auto max-w-5xl px-4 py-6">
+        <div className="mb-6">
+          <CategoryManager categories={categories} dishes={dishes} />
+        </div>
+
+        <h2 className="mb-3 font-serif text-lg">Platos</h2>
         <ul className="flex flex-col gap-3">
           {dishes.map((dish) => (
             <li
@@ -185,7 +197,7 @@ export function AdminDashboard({ dishes }: { dishes: Dish[] }) {
                 <X className="size-5" />
               </button>
             </div>
-            <DishForm dish={editing ?? undefined} onDone={handleDone} />
+            <DishForm dish={editing ?? undefined} categories={categories} onDone={handleDone} />
           </div>
         </div>
       )}

@@ -4,8 +4,7 @@ import { useRef, useState, useTransition } from "react"
 import Image from "next/image"
 import { Upload, X, Box, Loader2 } from "lucide-react"
 import { createDish, updateDish, uploadFile } from "@/app/actions/dishes"
-import { CATEGORIES } from "@/lib/constants"
-import type { Dish } from "@/lib/db"
+import type { Dish, Category } from "@/lib/db"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -22,14 +21,16 @@ import { toast } from "sonner"
 
 export function DishForm({
   dish,
+  categories,
   onDone,
 }: {
   dish?: Dish
+  categories: Category[]
   onDone: () => void
 }) {
   const [images, setImages] = useState<string[]>(dish?.images ?? [])
   const [model3dUrl, setModel3dUrl] = useState<string>(dish?.model3dUrl ?? "")
-  const [category, setCategory] = useState(dish?.category ?? "entrantes")
+  const [category, setCategory] = useState(dish?.category ?? categories[0]?.slug ?? "")
   const [featured, setFeatured] = useState(dish?.featured ?? false)
   const [available, setAvailable] = useState(dish?.available ?? true)
   const [uploadingImg, setUploadingImg] = useState(false)
@@ -126,8 +127,8 @@ export function DishForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {CATEGORIES.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
+              {categories.map((c) => (
+                <SelectItem key={c.slug} value={c.slug}>
                   {c.label}
                 </SelectItem>
               ))}

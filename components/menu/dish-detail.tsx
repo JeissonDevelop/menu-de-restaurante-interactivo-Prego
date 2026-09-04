@@ -5,8 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import dynamic from "next/dynamic"
 import { ArrowLeft, Box, ImageIcon } from "lucide-react"
-import type { Dish } from "@/lib/db"
-import { CATEGORIES } from "@/lib/constants"
+import type { Category, Dish } from "@/lib/db"
 import { LanguageProvider, useLanguage } from "./language-provider"
 import { LanguageSwitcher } from "./language-switcher"
 
@@ -23,7 +22,7 @@ function ViewerSkeleton() {
   )
 }
 
-function DishDetailInner({ dish }: { dish: Dish }) {
+function DishDetailInner({ dish, categories }: { dish: Dish; categories: Category[] }) {
   const { t, translateDish, categoryLabel } = useLanguage()
   const tr = translateDish(dish)
   const [mode, setMode] = useState<"photos" | "3d">("photos")
@@ -31,7 +30,7 @@ function DishDetailInner({ dish }: { dish: Dish }) {
 
   const catLabel = categoryLabel(
     dish.category,
-    CATEGORIES.find((c) => c.id === dish.category)?.label ?? dish.category,
+    categories.find((c) => c.slug === dish.category)?.label ?? dish.category,
   )
   const images = dish.images.length ? dish.images : ["/placeholder.svg?height=600&width=800"]
 
@@ -139,10 +138,18 @@ function DishDetailInner({ dish }: { dish: Dish }) {
   )
 }
 
-export function DishDetail({ dish, allDishes }: { dish: Dish; allDishes: Dish[] }) {
+export function DishDetail({
+  dish,
+  allDishes,
+  categories,
+}: {
+  dish: Dish
+  allDishes: Dish[]
+  categories: Category[]
+}) {
   return (
-    <LanguageProvider dishes={allDishes}>
-      <DishDetailInner dish={dish} />
+    <LanguageProvider dishes={allDishes} categories={categories}>
+      <DishDetailInner dish={dish} categories={categories} />
     </LanguageProvider>
   )
 }

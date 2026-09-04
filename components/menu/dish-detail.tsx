@@ -8,6 +8,7 @@ import { ArrowLeft, Box, ImageIcon } from "lucide-react"
 import type { Category, Dish } from "@/lib/db"
 import { LanguageProvider, useLanguage } from "./language-provider"
 import { LanguageSwitcher } from "./language-switcher"
+import { AllergenStickers } from "./allergen-stickers"
 
 const DishModelViewer = dynamic(
   () => import("./dish-model-viewer").then((m) => m.DishModelViewer),
@@ -131,6 +132,7 @@ function DishDetailInner({ dish, categories }: { dish: Dish; categories: Categor
           <div className="mt-8">
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide">{t("ingredients")}</h2>
             <p className="leading-relaxed text-muted-foreground">{tr.ingredients}</p>
+            <AllergenStickers allergens={dish.allergens} />
           </div>
         </div>
       </div>

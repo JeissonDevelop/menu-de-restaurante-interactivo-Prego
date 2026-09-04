@@ -29,6 +29,7 @@ export type DishRow = {
   price: string
   category: string
   images: string[]
+  allergens: string[]
   model_3d_url: string | null
   featured: boolean
   available: boolean
@@ -45,6 +46,7 @@ export type Dish = {
   price: number
   category: string
   images: string[]
+  allergens: string[]
   model3dUrl: string | null
   featured: boolean
   available: boolean
@@ -84,6 +86,7 @@ export function mapDish(row: DishRow): Dish {
     price: Number(row.price),
     category: row.category,
     images: Array.isArray(row.images) ? row.images : [],
+    allergens: Array.isArray(row.allergens) ? row.allergens : [],
     model3dUrl: row.model_3d_url,
     featured: row.featured,
     available: row.available,

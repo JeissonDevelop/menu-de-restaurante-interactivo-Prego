@@ -27,8 +27,8 @@ export async function createDish(formData: FormData) {
   await assertAdmin()
   const data = await parseDishForm(formData)
   await pool.query(
-    `INSERT INTO dishes (name, ingredients, description, price, category, images, model_3d_url, featured, available, sort_order)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+    `INSERT INTO dishes (name, ingredients, description, price, category, images, allergens, model_3d_url, featured, available, sort_order)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
     [
       data.name,
       data.ingredients,
@@ -36,6 +36,7 @@ export async function createDish(formData: FormData) {
       data.price,
       data.category,
       JSON.stringify(data.images),
+      JSON.stringify(data.allergens),
       data.model3dUrl,
       data.featured,
       data.available,
@@ -51,8 +52,8 @@ export async function updateDish(id: number, formData: FormData) {
   const data = await parseDishForm(formData)
   await pool.query(
     `UPDATE dishes SET name=$1, ingredients=$2, description=$3, price=$4, category=$5,
-       images=$6, model_3d_url=$7, featured=$8, available=$9, sort_order=$10, updated_at=now()
-     WHERE id=$11`,
+       images=$6, allergens=$7, model_3d_url=$8, featured=$9, available=$10, sort_order=$11, updated_at=now()
+     WHERE id=$12`,
     [
       data.name,
       data.ingredients,
@@ -60,6 +61,7 @@ export async function updateDish(id: number, formData: FormData) {
       data.price,
       data.category,
       JSON.stringify(data.images),
+      JSON.stringify(data.allergens),
       data.model3dUrl,
       data.featured,
       data.available,
@@ -114,6 +116,7 @@ type ParsedDish = {
   price: number
   category: string
   images: string[]
+  allergens: string[]
   model3dUrl: string | null
   featured: boolean
   available: boolean
@@ -122,6 +125,7 @@ type ParsedDish = {
 
 async function parseDishForm(formData: FormData): Promise<ParsedDish> {
   const images = JSON.parse((formData.get("images") as string) || "[]")
+  const allergens = JSON.parse((formData.get("allergens") as string) || "[]")
   return {
     name: (formData.get("name") as string)?.trim() || "",
     ingredients: (formData.get("ingredients") as string)?.trim() || "",
@@ -129,6 +133,7 @@ async function parseDishForm(formData: FormData): Promise<ParsedDish> {
     price: Number(formData.get("price")) || 0,
     category: (formData.get("category") as string) || "entrantes",
     images: Array.isArray(images) ? images : [],
+    allergens: Array.isArray(allergens) ? allergens : [],
     model3dUrl: ((formData.get("model3dUrl") as string) || "").trim() || null,
     featured: formData.get("featured") === "true",
     available: formData.get("available") !== "false",

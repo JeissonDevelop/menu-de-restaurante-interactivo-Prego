@@ -8,8 +8,8 @@ import { pool } from "@/lib/db"
 export const dynamic = "force-dynamic"
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ restaurante?: string }> }) {
-  const authed = await isAdminAuthed(restaurantSlug)
   const restaurantSlug = (await searchParams).restaurante === "olea" ? "olea" : "prego"
+  const authed = await isAdminAuthed(restaurantSlug)
 
   if (!authed) return <AdminLogin restaurantSlug={restaurantSlug} />
 

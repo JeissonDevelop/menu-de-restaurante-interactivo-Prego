@@ -1,13 +1,10 @@
 "use server"
 
-import { getAdminPassword, setAdminCookie, clearAdminCookie } from "@/lib/admin-auth"
+import { clearAdminCookie, loginAdminCredentials } from "@/lib/admin-auth"
 
-export async function loginAdmin(password: string): Promise<{ ok: boolean }> {
-  if (password === getAdminPassword()) {
-    await setAdminCookie()
-    return { ok: true }
-  }
-  return { ok: false }
+export async function loginAdmin(email: string, password: string, restaurantSlug: "prego" | "olea") {
+  const ok = await loginAdminCredentials(email, password, restaurantSlug)
+  return { ok }
 }
 
 export async function logoutAdmin() {

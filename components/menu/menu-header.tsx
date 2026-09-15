@@ -4,14 +4,14 @@ import Image from "next/image"
 import { useLanguage } from "./language-provider"
 import { LanguageSwitcher } from "./language-switcher"
 
-export function MenuHeader() {
+export function MenuHeader({ name = "PREGO", heroImage = "/prego-hero.png" }: { name?: string; heroImage?: string }) {
   const { t } = useLanguage()
 
   return (
     <header className="relative overflow-hidden border-b border-border">
       <div className="absolute inset-0">
         <Image
-          src="/prego-hero.png"
+          src={heroImage}
           alt=""
           fill
           priority
@@ -28,7 +28,7 @@ export function MenuHeader() {
 
       <div className="relative mx-auto flex max-w-6xl flex-col items-center px-4 pb-16 pt-10 text-center md:pb-24 md:pt-16">
         <span className="mb-4 h-px w-16 bg-primary" aria-hidden />
-        <h1 className="font-serif text-6xl font-medium tracking-tight text-glow md:text-8xl">PREGO</h1>
+        <h1 className="font-serif text-6xl font-medium tracking-tight text-glow md:text-8xl">{name}</h1>
         <p className="mt-4 max-w-md text-pretty text-base text-muted-foreground md:text-lg">
           {t("tagline")}
         </p>

@@ -2,12 +2,11 @@
 
 import { useMemo, useState } from "react"
 import { Star } from "lucide-react"
-import type { Dish } from "@/lib/db"
-import { CATEGORIES } from "@/lib/constants"
+import type { Dish, Category } from "@/lib/db"
 import { useLanguage } from "./language-provider"
 import { DishCard } from "./dish-card"
 
-export function MenuBrowser({ dishes }: { dishes: Dish[] }) {
+export function MenuBrowser({ dishes, categories }: { dishes: Dish[]; categories: Category[] }) {
   const { t, categoryLabel } = useLanguage()
   const [active, setActive] = useState<string>("destacados")
 
@@ -16,14 +15,14 @@ export function MenuBrowser({ dishes }: { dishes: Dish[] }) {
   // Only show categories that actually contain dishes.
   const usedCategories = useMemo(() => {
     const present = new Set(dishes.map((d) => d.category))
-    return CATEGORIES.filter((c) => present.has(c.id))
-  }, [dishes])
+    return categories.filter((c) => present.has(c.slug))
+  }, [dishes, categories])
 
   const tabs = useMemo(() => {
     const base: { id: string; label: string }[] = []
     if (featured.length > 0) base.push({ id: "destacados", label: t("featured") })
     base.push({ id: "todo", label: t("all") })
-    for (const c of usedCategories) base.push({ id: c.id, label: categoryLabel(c.id, c.label) })
+    for (const c of usedCategories) base.push({ id: c.slug, label: categoryLabel(c.slug, c.label) })
     return base
   }, [featured.length, usedCategories, t, categoryLabel])
 

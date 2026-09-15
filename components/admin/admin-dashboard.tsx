@@ -7,17 +7,30 @@ import { Plus, Pencil, Trash2, Star, LogOut, Eye, ExternalLink, X } from "lucide
 import { deleteDish, toggleFeatured } from "@/app/actions/dishes"
 import { logoutAdmin } from "@/app/actions/auth"
 import { DishForm } from "@/components/admin/dish-form"
-import { CATEGORIES } from "@/lib/constants"
-import type { Dish } from "@/lib/db"
+import { CategoryManager } from "@/components/admin/category-manager"
+import type { Dish, Category } from "@/lib/db"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { LanguageProvider } from "@/components/menu/language-provider"
+import { LanguageSwitcher } from "@/components/menu/language-switcher"
 
-export function AdminDashboard({ dishes }: { dishes: Dish[] }) {
+export function AdminDashboard({
+  dishes,
+  categories,
+  restaurantSlug,
+  restaurantName,
+}: {
+  dishes: Dish[]
+  categories: Category[]
+  restaurantSlug: string
+  restaurantName: string
+}) {
   const router = useRouter()
   const [editing, setEditing] = useState<Dish | null>(null)
   const [creating, setCreating] = useState(false)
+  const [section, setSection] = useState<"dishes" | "categories">("dishes")
   const [pending, startTransition] = useTransition()
 
   const showForm = creating || editing !== null
@@ -59,19 +72,23 @@ export function AdminDashboard({ dishes }: { dishes: Dish[] }) {
     })
   }
 
-  const categoryLabel = (id: string) => CATEGORIES.find((c) => c.id === id)?.label ?? id
+  const categoryLabel = (slug: string) =>
+    categories.find((c) => c.slug === slug)?.label ?? slug
 
   return (
     <main className="min-h-dvh">
       <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4">
           <div>
-            <h1 className="font-serif text-xl leading-none">PREGO · Gestión</h1>
+            <h1 className="font-serif text-xl leading-none">{restaurantName} · Gestión</h1>
             <p className="mt-1 text-xs text-muted-foreground">{dishes.length} platos en la carta</p>
           </div>
           <div className="flex items-center gap-2">
+            <LanguageProvider dishes={dishes} categories={categories}>
+              <LanguageSwitcher />
+            </LanguageProvider>
             <Button asChild variant="outline" size="sm">
-              <Link href="/" target="_blank">
+              <Link href={`/restaurante/${restaurantSlug}`} target="_blank">
                 <Eye className="size-4" />
                 <span className="hidden sm:inline">Ver carta</span>
               </Link>
@@ -88,6 +105,28 @@ export function AdminDashboard({ dishes }: { dishes: Dish[] }) {
       </header>
 
       <div className="mx-auto max-w-5xl px-4 py-6">
+        <div className="mb-6 grid grid-cols-2 gap-2 rounded-xl border border-border bg-card p-1">
+          <button
+            type="button"
+            onClick={() => setSection("dishes")}
+            className={`min-h-11 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${section === "dishes" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Gestión de platos
+          </button>
+          <button
+            type="button"
+            onClick={() => setSection("categories")}
+            className={`min-h-11 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${section === "categories" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Gestión de categorías
+          </button>
+        </div>
+
+        {section === "categories" ? (
+          <CategoryManager categories={categories} dishes={dishes} restaurantSlug={restaurantSlug} />
+        ) : (
+          <>
+            <h2 className="mb-3 font-serif text-lg">Platos</h2>
         <ul className="flex flex-col gap-3">
           {dishes.map((dish) => (
             <li
@@ -168,6 +207,8 @@ export function AdminDashboard({ dishes }: { dishes: Dish[] }) {
             </li>
           )}
         </ul>
+          </>
+        )}
       </div>
 
       {showForm && (
@@ -185,7 +226,7 @@ export function AdminDashboard({ dishes }: { dishes: Dish[] }) {
                 <X className="size-5" />
               </button>
             </div>
-            <DishForm dish={editing ?? undefined} onDone={handleDone} />
+            <DishForm dish={editing ?? undefined} categories={categories} restaurantSlug={restaurantSlug} onDone={handleDone} />
           </div>
         </div>
       )}

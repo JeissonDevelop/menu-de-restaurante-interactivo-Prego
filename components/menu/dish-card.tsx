@@ -5,6 +5,7 @@ import Image from "next/image"
 import { Box } from "lucide-react"
 import type { Dish } from "@/lib/db"
 import { useLanguage } from "./language-provider"
+import { AllergenStickers } from "./allergen-stickers"
 
 export function DishCard({ dish }: { dish: Dish }) {
   const { translateDish } = useLanguage()
@@ -44,6 +45,7 @@ export function DishCard({ dish }: { dish: Dish }) {
           </span>
         </div>
         <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">{tr.ingredients}</p>
+        <AllergenStickers allergens={dish.allergens} compact />
       </div>
     </Link>
   )

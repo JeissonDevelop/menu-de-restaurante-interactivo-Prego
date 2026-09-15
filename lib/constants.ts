@@ -65,6 +65,10 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     view3d: "Ver en 3D",
     photos: "Fotos",
     translating: "Traduciendo...",
+    restaurants: "Restaurantes",
+    chooseRestaurant: "Elige tu mesa",
+    welcomeDescription: "Descubre la carta del restaurante que quieres visitar.",
+    viewMenu: "Ver menú",
   },
   en: {
     tagline: "Signature Italian cuisine",
@@ -79,6 +83,10 @@ export const UI_STRINGS: Record<string, Record<string, string>> = {
     view3d: "View in 3D",
     photos: "Photos",
     translating: "Translating...",
+    restaurants: "Restaurants",
+    chooseRestaurant: "Choose your table",
+    welcomeDescription: "Discover the menu of the restaurant you want to visit.",
+    viewMenu: "View menu",
   },
 }
 

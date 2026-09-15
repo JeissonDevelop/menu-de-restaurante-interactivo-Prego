@@ -4,8 +4,8 @@ import { useRef, useState, useTransition } from "react"
 import Image from "next/image"
 import { Upload, X, Box, Loader2 } from "lucide-react"
 import { createDish, updateDish, uploadFile } from "@/app/actions/dishes"
-import { CATEGORIES } from "@/lib/constants"
-import type { Dish } from "@/lib/db"
+import type { Dish, Category } from "@/lib/db"
+import { ALLERGENS } from "@/lib/allergens"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -22,14 +22,19 @@ import { toast } from "sonner"
 
 export function DishForm({
   dish,
+  categories,
+  restaurantSlug,
   onDone,
 }: {
   dish?: Dish
+  categories: Category[]
+  restaurantSlug: string
   onDone: () => void
 }) {
   const [images, setImages] = useState<string[]>(dish?.images ?? [])
   const [model3dUrl, setModel3dUrl] = useState<string>(dish?.model3dUrl ?? "")
-  const [category, setCategory] = useState(dish?.category ?? "entrantes")
+  const [category, setCategory] = useState(dish?.category ?? categories[0]?.slug ?? "")
+  const [allergens, setAllergens] = useState<string[]>(dish?.allergens ?? [])
   const [featured, setFeatured] = useState(dish?.featured ?? false)
   const [available, setAvailable] = useState(dish?.available ?? true)
   const [uploadingImg, setUploadingImg] = useState(false)
@@ -76,6 +81,7 @@ export function DishForm({
     const form = e.currentTarget
     const fd = new FormData(form)
     fd.set("images", JSON.stringify(images))
+    fd.set("allergens", JSON.stringify(allergens))
     fd.set("model3dUrl", model3dUrl)
     fd.set("category", category)
     fd.set("featured", String(featured))
@@ -99,6 +105,7 @@ export function DishForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <input type="hidden" name="restaurantSlug" value={restaurantSlug} />
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <Label htmlFor="name">Nombre</Label>
@@ -126,8 +133,8 @@ export function DishForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {CATEGORIES.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
+              {categories.map((c) => (
+                <SelectItem key={c.slug} value={c.slug}>
                   {c.label}
                 </SelectItem>
               ))}
@@ -172,6 +179,42 @@ export function DishForm({
       </div>
 
       {/* Images */}
+      <div>
+        <Label>Alérgenos</Label>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Selecciona los alérgenos presentes o posibles trazas según los ingredientes.
+        </p>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {ALLERGENS.map((allergen) => {
+            const checked = allergens.includes(allergen.id)
+            return (
+              <button
+                key={allergen.id}
+                type="button"
+                aria-pressed={checked}
+                onClick={() =>
+                  setAllergens((current) =>
+                    checked
+                      ? current.filter((id) => id !== allergen.id)
+                      : [...current, allergen.id],
+                  )
+                }
+                className={`flex min-h-11 items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs transition-colors ${
+                  checked
+                    ? "border-primary bg-primary/10 text-foreground"
+                    : "border-border text-muted-foreground hover:border-primary/60"
+                }`}
+              >
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary font-mono text-[10px] font-bold">
+                  {allergen.icon}
+                </span>
+                <span>{allergen.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       <div>
         <Label>Imágenes</Label>
         <div className="mt-1.5 flex flex-wrap gap-3">

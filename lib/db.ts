@@ -29,12 +29,22 @@ export type DishRow = {
   price: string
   category: string
   images: string[]
+  allergens: string[]
   model_3d_url: string | null
   featured: boolean
   available: boolean
   sort_order: number
   created_at: string
   updated_at: string
+  restaurant_id: number
+}
+
+export type Restaurant = {
+  id: number
+  slug: string
+  name: string
+  tagline: string
+  heroImage: string
 }
 
 export type Dish = {
@@ -45,10 +55,40 @@ export type Dish = {
   price: number
   category: string
   images: string[]
+  allergens: string[]
   model3dUrl: string | null
   featured: boolean
   available: boolean
   sortOrder: number
+}
+
+export type CategoryRow = {
+  id: number
+  slug: string
+  label: string
+  sort_order: number
+  created_at: string
+  restaurant_id: number
+}
+
+export type Category = {
+  id: number
+  slug: string
+  label: string
+  sortOrder: number
+}
+
+export function mapRestaurant(row: { id: number; slug: string; name: string; tagline: string; hero_image: string }): Restaurant {
+  return { id: row.id, slug: row.slug, name: row.name, tagline: row.tagline, heroImage: row.hero_image }
+}
+
+export function mapCategory(row: CategoryRow): Category {
+  return {
+    id: row.id,
+    slug: row.slug,
+    label: row.label,
+    sortOrder: row.sort_order,
+  }
 }
 
 export function mapDish(row: DishRow): Dish {
@@ -60,6 +100,7 @@ export function mapDish(row: DishRow): Dish {
     price: Number(row.price),
     category: row.category,
     images: Array.isArray(row.images) ? row.images : [],
+    allergens: Array.isArray(row.allergens) ? row.allergens : [],
     model3dUrl: row.model_3d_url,
     featured: row.featured,
     available: row.available,

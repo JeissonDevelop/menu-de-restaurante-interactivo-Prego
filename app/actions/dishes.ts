@@ -5,9 +5,17 @@ import { isAdminAuthed } from "@/lib/admin-auth"
 import { put, del } from "@vercel/blob"
 import { revalidatePath } from "next/cache"
 
-export async function getDishes(): Promise<Dish[]> {
+async function getRestaurantId(slug: string) {
+  const { rows } = await pool.query<{ id: number }>("SELECT id FROM restaurants WHERE slug = $1", [slug])
+  if (!rows[0]) throw new Error("Restaurante no encontrado")
+  return rows[0].id
+}
+
+export async function getDishes(restaurantSlug = "prego"): Promise<Dish[]> {
+  const restaurantId = await getRestaurantId(restaurantSlug)
   const { rows } = await pool.query<DishRow>(
-    "SELECT * FROM dishes ORDER BY sort_order ASC, id ASC",
+    "SELECT * FROM dishes WHERE restaurant_id = $1 ORDER BY sort_order ASC, id ASC",
+    [restaurantId],
   )
   return rows.map(mapDish)
 }
@@ -27,8 +35,8 @@ export async function createDish(formData: FormData) {
   await assertAdmin()
   const data = await parseDishForm(formData)
   await pool.query(
-    `INSERT INTO dishes (name, ingredients, description, price, category, images, allergens, model_3d_url, featured, available, sort_order)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+    `INSERT INTO dishes (name, ingredients, description, price, category, images, allergens, model_3d_url, featured, available, sort_order, restaurant_id)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
     [
       data.name,
       data.ingredients,
@@ -41,6 +49,7 @@ export async function createDish(formData: FormData) {
       data.featured,
       data.available,
       data.sortOrder,
+      await getRestaurantId(data.restaurantSlug),
     ],
   )
   revalidatePath("/")
@@ -121,6 +130,7 @@ type ParsedDish = {
   featured: boolean
   available: boolean
   sortOrder: number
+  restaurantSlug: string
 }
 
 async function parseDishForm(formData: FormData): Promise<ParsedDish> {
@@ -138,5 +148,6 @@ async function parseDishForm(formData: FormData): Promise<ParsedDish> {
     featured: formData.get("featured") === "true",
     available: formData.get("available") !== "false",
     sortOrder: Number(formData.get("sortOrder")) || 0,
+    restaurantSlug: (formData.get("restaurantSlug") as string) || "prego",
   }
 }

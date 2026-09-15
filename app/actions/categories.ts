@@ -4,9 +4,17 @@ import { pool, mapCategory, type CategoryRow, type Category } from "@/lib/db"
 import { isAdminAuthed } from "@/lib/admin-auth"
 import { revalidatePath } from "next/cache"
 
-export async function getCategories(): Promise<Category[]> {
+async function getRestaurantId(slug: string) {
+  const { rows } = await pool.query<{ id: number }>("SELECT id FROM restaurants WHERE slug = $1", [slug])
+  if (!rows[0]) throw new Error("Restaurante no encontrado")
+  return rows[0].id
+}
+
+export async function getCategories(restaurantSlug = "prego"): Promise<Category[]> {
+  const restaurantId = await getRestaurantId(restaurantSlug)
   const { rows } = await pool.query<CategoryRow>(
-    "SELECT * FROM categories ORDER BY sort_order ASC, id ASC",
+    "SELECT * FROM categories WHERE restaurant_id = $1 ORDER BY sort_order ASC, id ASC",
+    [restaurantId],
   )
   return rows.map(mapCategory)
 }
@@ -55,10 +63,12 @@ export async function createCategory(formData: FormData) {
   )
   const sortOrder = (rows[0]?.max ?? 0) + 1
 
-  await pool.query("INSERT INTO categories (slug, label, sort_order) VALUES ($1,$2,$3)", [
+  const restaurantId = await getRestaurantId((formData.get("restaurantSlug") as string) || "prego")
+  await pool.query("INSERT INTO categories (slug, label, sort_order, restaurant_id) VALUES ($1,$2,$3,$4)", [
     slug,
     label,
     sortOrder,
+    restaurantId,
   ])
   revalidatePath("/")
   revalidatePath("/admin")

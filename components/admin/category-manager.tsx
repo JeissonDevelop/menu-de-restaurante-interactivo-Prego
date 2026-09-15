@@ -16,9 +16,11 @@ import { toast } from "sonner"
 export function CategoryManager({
   categories,
   dishes,
+  restaurantSlug,
 }: {
   categories: Category[]
   dishes: Dish[]
+  restaurantSlug: string
 }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -34,6 +36,7 @@ export function CategoryManager({
     if (!label) return
     const fd = new FormData()
     fd.set("label", label)
+    fd.set("restaurantSlug", restaurantSlug)
     startTransition(async () => {
       try {
         await createCategory(fd)

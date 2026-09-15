@@ -36,6 +36,15 @@ export type DishRow = {
   sort_order: number
   created_at: string
   updated_at: string
+  restaurant_id: number
+}
+
+export type Restaurant = {
+  id: number
+  slug: string
+  name: string
+  tagline: string
+  heroImage: string
 }
 
 export type Dish = {
@@ -59,6 +68,7 @@ export type CategoryRow = {
   label: string
   sort_order: number
   created_at: string
+  restaurant_id: number
 }
 
 export type Category = {
@@ -66,6 +76,10 @@ export type Category = {
   slug: string
   label: string
   sortOrder: number
+}
+
+export function mapRestaurant(row: { id: number; slug: string; name: string; tagline: string; hero_image: string }): Restaurant {
+  return { id: row.id, slug: row.slug, name: row.name, tagline: row.tagline, heroImage: row.hero_image }
 }
 
 export function mapCategory(row: CategoryRow): Category {

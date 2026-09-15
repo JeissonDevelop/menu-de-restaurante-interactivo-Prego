@@ -23,10 +23,12 @@ import { toast } from "sonner"
 export function DishForm({
   dish,
   categories,
+  restaurantSlug,
   onDone,
 }: {
   dish?: Dish
   categories: Category[]
+  restaurantSlug: string
   onDone: () => void
 }) {
   const [images, setImages] = useState<string[]>(dish?.images ?? [])
@@ -103,6 +105,7 @@ export function DishForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <input type="hidden" name="restaurantSlug" value={restaurantSlug} />
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <Label htmlFor="name">Nombre</Label>

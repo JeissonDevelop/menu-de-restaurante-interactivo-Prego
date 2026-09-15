@@ -19,9 +19,13 @@ import { LanguageSwitcher } from "@/components/menu/language-switcher"
 export function AdminDashboard({
   dishes,
   categories,
+  restaurantSlug,
+  restaurantName,
 }: {
   dishes: Dish[]
   categories: Category[]
+  restaurantSlug: string
+  restaurantName: string
 }) {
   const router = useRouter()
   const [editing, setEditing] = useState<Dish | null>(null)
@@ -76,7 +80,7 @@ export function AdminDashboard({
       <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4">
           <div>
-            <h1 className="font-serif text-xl leading-none">PREGO · Gestión</h1>
+            <h1 className="font-serif text-xl leading-none">{restaurantName} · Gestión</h1>
             <p className="mt-1 text-xs text-muted-foreground">{dishes.length} platos en la carta</p>
           </div>
           <div className="flex items-center gap-2">
@@ -84,7 +88,7 @@ export function AdminDashboard({
               <LanguageSwitcher />
             </LanguageProvider>
             <Button asChild variant="outline" size="sm">
-              <Link href="/" target="_blank">
+              <Link href={`/restaurante/${restaurantSlug}`} target="_blank">
                 <Eye className="size-4" />
                 <span className="hidden sm:inline">Ver carta</span>
               </Link>
@@ -119,7 +123,7 @@ export function AdminDashboard({
         </div>
 
         {section === "categories" ? (
-          <CategoryManager categories={categories} dishes={dishes} />
+          <CategoryManager categories={categories} dishes={dishes} restaurantSlug={restaurantSlug} />
         ) : (
           <>
             <h2 className="mb-3 font-serif text-lg">Platos</h2>
@@ -222,7 +226,7 @@ export function AdminDashboard({
                 <X className="size-5" />
               </button>
             </div>
-            <DishForm dish={editing ?? undefined} categories={categories} onDone={handleDone} />
+            <DishForm dish={editing ?? undefined} categories={categories} restaurantSlug={restaurantSlug} onDone={handleDone} />
           </div>
         </div>
       )}
